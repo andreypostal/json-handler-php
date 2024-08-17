@@ -3,12 +3,14 @@
 use Andrey\JsonHandler\JsonHandler;
 use Andrey\JsonHandler\JsonItemAttribute;
 use Andrey\JsonHandler\JsonSerializerTrait;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\CoversTrait;
 use PHPUnit\Framework\TestCase;
 
 #[CoversTrait(JsonSerializerTrait::class)]
 #[CoversMethod(JsonHandler::class, 'Encode')]
+#[CoversClass(JsonItemAttribute::class)]
 final class SerializerTest extends TestCase
 {
     /**
@@ -16,16 +18,7 @@ final class SerializerTest extends TestCase
      */
     public function testSimpleSerialize(): void
     {
-        $obj = new class {
-            #[JsonItemAttribute]
-            public string $string = 'string';
-            #[JsonItemAttribute]
-            public int $int = 11;
-            #[JsonItemAttribute]
-            public float $float = 11.50;
-            #[JsonItemAttribute]
-            public bool $bool = true;
-        };
+        $obj = new SimpleTestObject();
 
         $handler = new JsonHandler();
         $arr = $handler->serialize($obj);
@@ -88,7 +81,6 @@ final class SerializerTest extends TestCase
      */
     public function testSerializeMultiLevel(): void
     {
-
         $obj = new WithChildObject();
 
         $handler = new JsonHandler();
@@ -111,7 +103,6 @@ final class SerializerTest extends TestCase
      */
     public function testSerializeWithExtraItems(): void
     {
-
         $obj = new class {
             public string $string = 'string';
             #[JsonItemAttribute(key: 'my_item')]

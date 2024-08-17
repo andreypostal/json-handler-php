@@ -2,12 +2,15 @@
 
 use Andrey\JsonHandler\JsonHandler;
 use Andrey\JsonHandler\JsonHydratorTrait;
+use Andrey\JsonHandler\JsonItemAttribute;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\CoversTrait;
 use PHPUnit\Framework\TestCase;
 
 #[CoversTrait(JsonHydratorTrait::class)]
 #[CoversMethod(JsonHandler::class, 'Decode')]
+#[CoversClass(JsonItemAttribute::class)]
 final class HydratorTest extends TestCase
 {
     /**
