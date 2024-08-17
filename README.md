@@ -86,6 +86,7 @@ use \MyNamespace\MyObject;
 $handler = new JsonHandler();
 
 $myObject = new MyObject();
+
 // This parses the json string and hydrates the original object, modifying it
 $handler->hydrateObject($jsonString, $myObject);
 
