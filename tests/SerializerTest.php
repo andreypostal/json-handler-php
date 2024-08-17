@@ -3,12 +3,12 @@
 use Andrey\JsonHandler\JsonHandler;
 use Andrey\JsonHandler\JsonItemAttribute;
 use Andrey\JsonHandler\JsonSerializerTrait;
+use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\CoversTrait;
-use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversTrait(JsonSerializerTrait::class)]
-#[UsesClass(JsonHandler::class)]
+#[CoversMethod(JsonHandler::class, 'Encode')]
 final class SerializerTest extends TestCase
 {
     /**
