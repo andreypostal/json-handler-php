@@ -20,7 +20,7 @@ trait JsonSerializerTrait
                 continue;
             }
             /** @var JsonItemAttribute $item */
-            $item = $skipAttributeCheck ? new JsonItemAttribute() : $attr->newInstance();
+            $item = $attr?->newInstance() ?? new JsonItemAttribute();
             $key = $item->key ?? $property->name;
 
             if ($property->getType()?->isBuiltin()) {
