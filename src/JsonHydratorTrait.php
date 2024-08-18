@@ -1,6 +1,8 @@
 <?php
 namespace Andrey\JsonHandler;
 
+use Andrey\JsonHandler\Attributes\JsonItemAttribute;
+use Andrey\JsonHandler\Attributes\JsonObjectAttribute;
 use InvalidArgumentException;
 use JsonException;
 use LogicException;
@@ -40,10 +42,11 @@ trait JsonHydratorTrait
      */
     private function processClass(ReflectionClass $class, array $jsonArr): array
     {
+        $skipAttributeCheck = ($class->getAttributes(JsonObjectAttribute::class)[0] ?? null) !== null;
         $output = [];
         $properties = $class->getProperties();
         foreach ($properties as $property) {
-            $output[$property->getName()] = $this->processProperty($property, $jsonArr);
+            $output[$property->getName()] = $this->processProperty($property, $jsonArr, $skipAttributeCheck);
         }
         return $output;
     }
@@ -51,16 +54,16 @@ trait JsonHydratorTrait
     /**
      * @throws JsonException
      */
-    private function processProperty(ReflectionProperty $property, array $jsonArr): mixed
+    private function processProperty(ReflectionProperty $property, array $jsonArr, bool $skipAttributeCheck): mixed
     {
         $attributes = $property->getAttributes(JsonItemAttribute::class);
         $attr = $attributes[0] ?? null;
-        if ($attr === null) {
+        if ($attr === null && !$skipAttributeCheck) {
             return null;
         }
 
         /** @var JsonItemAttribute $item */
-        $item = $attr->newInstance();
+        $item = $skipAttributeCheck ? new JsonItemAttribute() : $attr->newInstance();
         $key = $item->key ?? $property->getName();
         if ($item->required && !array_key_exists($key, $jsonArr)) {
             throw new InvalidArgumentException(sprintf('required item <%s> not found', $key));

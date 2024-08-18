@@ -1,6 +1,6 @@
 <?php
 
-use Andrey\JsonHandler\JsonItemAttribute;
+use Andrey\JsonHandler\Attributes\JsonItemAttribute;
 
 class WithArrayOfChildObject
 {

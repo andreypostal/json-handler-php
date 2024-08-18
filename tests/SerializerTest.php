@@ -1,7 +1,8 @@
 <?php
 
+use Andrey\JsonHandler\Attributes\JsonItemAttribute;
+use Andrey\JsonHandler\Attributes\JsonObjectAttribute;
 use Andrey\JsonHandler\JsonHandler;
-use Andrey\JsonHandler\JsonItemAttribute;
 use Andrey\JsonHandler\JsonSerializerTrait;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
@@ -11,6 +12,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversTrait(JsonSerializerTrait::class)]
 #[CoversMethod(JsonHandler::class, 'Encode')]
 #[CoversClass(JsonItemAttribute::class)]
+#[CoversClass(JsonObjectAttribute::class)]
 final class SerializerTest extends TestCase
 {
     /**
@@ -18,34 +20,7 @@ final class SerializerTest extends TestCase
      */
     public function testSimpleSerialize(): void
     {
-        $obj = new SimpleTestObject();
-
-        $handler = new JsonHandler();
-        $arr = $handler->serialize($obj);
-
-        $this->assertArrayHasKey('string', $arr);
-        $this->assertArrayHasKey('int', $arr);
-        $this->assertArrayHasKey('float', $arr);
-        $this->assertArrayHasKey('bool', $arr);
-
-        $this->assertIsBool($arr['bool']);
-        $this->assertTrue($arr['bool']);
-
-        $this->assertIsInt($arr['int']);
-        $this->assertEquals(11, $arr['int']);
-
-        $this->assertIsFloat($arr['float']);
-        $this->assertEquals(11.50, $arr['float']);
-
-        $this->assertIsString($arr['string']);
-        $this->assertEquals('string', $arr['string']);
-
-        // No exceptions
-        $json = JsonHandler::Encode($arr);
-        $this->assertStringContainsString('float', $json);
-        $this->assertStringContainsString('int', $json);
-        $this->assertStringContainsString('bool', $json);
-        $this->assertStringContainsString('string', $json);
+        $this->assertSimpleSerializedObject(new SimpleTestObject());
     }
 
     /**
@@ -116,5 +91,46 @@ final class SerializerTest extends TestCase
         $this->assertArrayHasKey('my_item', $arr);
 
         JsonHandler::Encode($arr);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testSerializeWithObjectAttr(): void
+    {
+        $this->assertSimpleSerializedObject(new SimpleTestWithObjectAttr());
+    }
+
+    /**
+     * @throws JsonException
+     */
+    private function assertSimpleSerializedObject(object $obj): void
+    {
+        $handler = new JsonHandler();
+        $arr = $handler->serialize($obj);
+
+        $this->assertArrayHasKey('string', $arr);
+        $this->assertArrayHasKey('int', $arr);
+        $this->assertArrayHasKey('float', $arr);
+        $this->assertArrayHasKey('bool', $arr);
+
+        $this->assertIsBool($arr['bool']);
+        $this->assertTrue($arr['bool']);
+
+        $this->assertIsInt($arr['int']);
+        $this->assertEquals(11, $arr['int']);
+
+        $this->assertIsFloat($arr['float']);
+        $this->assertEquals(11.50, $arr['float']);
+
+        $this->assertIsString($arr['string']);
+        $this->assertEquals('string', $arr['string']);
+
+        // No exceptions
+        $json = JsonHandler::Encode($arr);
+        $this->assertStringContainsString('float', $json);
+        $this->assertStringContainsString('int', $json);
+        $this->assertStringContainsString('bool', $json);
+        $this->assertStringContainsString('string', $json);
     }
 }
