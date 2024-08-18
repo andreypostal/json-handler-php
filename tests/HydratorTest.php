@@ -169,4 +169,21 @@ final class HydratorTest extends TestCase
         $this->assertEquals(1.5, $obj->float);
         $this->assertFalse($obj->bool);
     }
+
+    /**
+     * @throws JsonException
+     */
+    public function testMixedObjectAndItemAttributes(): void
+    {
+        $json = '{"string": "str", "int": 1, "float": 1.50, "bool": false}';
+        $obj = new MixedAttributesObject();
+
+        $handler = new JsonHandler();
+        $handler->hydrateObject($json, $obj);
+
+        $this->assertEquals('str', $obj->string);
+        $this->assertEquals(1, $obj->int);
+        $this->assertEquals(1.5, $obj->float);
+        $this->assertFalse($obj->bool);
+    }
 }

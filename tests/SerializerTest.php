@@ -104,6 +104,14 @@ final class SerializerTest extends TestCase
     /**
      * @throws JsonException
      */
+    public function testSerializeWithMixedAttrs(): void
+    {
+        $this->assertSimpleSerializedObject(new MixedAttributesObject());
+    }
+
+    /**
+     * @throws JsonException
+     */
     private function assertSimpleSerializedObject(object $obj): void
     {
         $handler = new JsonHandler();

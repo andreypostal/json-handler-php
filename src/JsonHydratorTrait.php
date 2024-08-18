@@ -63,7 +63,7 @@ trait JsonHydratorTrait
         }
 
         /** @var JsonItemAttribute $item */
-        $item = $skipAttributeCheck ? new JsonItemAttribute() : $attr->newInstance();
+        $item = $attr?->newInstance() ?? new JsonItemAttribute();
         $key = $item->key ?? $property->getName();
         if ($item->required && !array_key_exists($key, $jsonArr)) {
             throw new InvalidArgumentException(sprintf('required item <%s> not found', $key));

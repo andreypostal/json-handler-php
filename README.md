@@ -40,6 +40,21 @@ class MyObject {
 }
 ```
 
+You can also combine both when need to add custom key or if you want to make an item required.
+In the case of the entire object being a JsonObject with a direct 1:1 match (or perfect mirror of the keys), you can use the ``JsonObjectAttribute``
+```php
+use \Andrey\JsonHandler\Attributes\JsonObjectAttribute;
+use \Andrey\JsonHandler\Attributes\JsonItemAttribute;
+
+// { "id": 123, "custom_name": "my name" }
+#[JsonObjectAttribute]
+class MyObject {
+    public int $id;
+    #[JsonItemAttribute(key: 'custom_name')]
+    public string $name;
+}
+```
+
 If your **Value Object** has some property that **won't be present** in the JSON, you can
 just omit the attribute for it and the other ones will be processed normally.
 ```php
