@@ -1,5 +1,5 @@
 <?php
-namespace Andrey\JsonHandler;
+namespace Andrey\JsonHandler\Attributes;
 
 use Attribute;
 

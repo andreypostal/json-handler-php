@@ -1,8 +1,9 @@
 <?php
 
+use Andrey\JsonHandler\Attributes\JsonObjectAttribute;
 use Andrey\JsonHandler\JsonHandler;
 use Andrey\JsonHandler\JsonHydratorTrait;
-use Andrey\JsonHandler\JsonItemAttribute;
+use Andrey\JsonHandler\Attributes\JsonItemAttribute;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\CoversTrait;
@@ -11,6 +12,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversTrait(JsonHydratorTrait::class)]
 #[CoversMethod(JsonHandler::class, 'Decode')]
 #[CoversClass(JsonItemAttribute::class)]
+#[CoversClass(JsonObjectAttribute::class)]
 final class HydratorTest extends TestCase
 {
     /**
@@ -149,5 +151,22 @@ final class HydratorTest extends TestCase
         $this->assertCount(1, $obj->children);
         $this->assertIsObject($obj->children[0]);
         $this->assertEquals('abc', $obj->children[0]->string);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testHydrateWithObjectAttr(): void
+    {
+        $json = '{"string": "str", "int": 1, "float": 1.50, "bool": false}';
+        $obj = new SimpleTestWithObjectAttr();
+
+        $handler = new JsonHandler();
+        $handler->hydrateObject($json, $obj);
+
+        $this->assertEquals('str', $obj->string);
+        $this->assertEquals(1, $obj->int);
+        $this->assertEquals(1.5, $obj->float);
+        $this->assertFalse($obj->bool);
     }
 }

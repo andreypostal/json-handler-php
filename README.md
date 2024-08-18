@@ -17,8 +17,9 @@ composer require andreypostal/json-handler-php
 When creating your **Value Objects** that represent a **JSON entity** you just need
 to add the ``JsonItemAttribute`` to each property that will be present in the JSON.
 ```php
-use \Andrey\JsonHandler\JsonItemAttribute;
+use \Andrey\JsonHandler\Attributes\JsonItemAttribute;
 
+// { "id": 123, "name": "my name" }
 class MyObject {
     #[JsonItemAttribute]
     public int $id;
@@ -27,11 +28,24 @@ class MyObject {
 }
 ```
 
+In the case of the entire object being a JsonObject with a direct 1:1 match (or perfect mirror of the keys), you can use the ``JsonObjectAttribute``
+```php
+use \Andrey\JsonHandler\Attributes\JsonObjectAttribute;
+
+// { "id": 123, "name": "my name" }
+#[JsonObjectAttribute]
+class MyObject {
+    public int $id;
+    public string $name;
+}
+```
+
 If your **Value Object** has some property that **won't be present** in the JSON, you can
 just omit the attribute for it and the other ones will be processed normally.
 ```php
-use \Andrey\JsonHandler\JsonItemAttribute;
+use \Andrey\JsonHandler\Attributes\JsonItemAttribute;
 
+// { "id": 123 }
 class MyObject {
     #[JsonItemAttribute]
     public int $id;
@@ -41,21 +55,25 @@ class MyObject {
 
 In case the items are required to exist in the JSON being processed, you must add the required flag in the attribute.
 ```php
-use \Andrey\JsonHandler\JsonItemAttribute;
+use \Andrey\JsonHandler\Attributes\JsonItemAttribute;
 
+// { "id": 123 } or { "id": 123, "name": "my name" }
 class MyObject {
     #[JsonItemAttribute(required: true)]
     public int $id;
+    #[JsonItemAttribute]
+    public string $name;
 }
 ```
 
 When some of the keys in your JSON are different from your object, you can include the JSON key in the attribute.
 ```php
-use \Andrey\JsonHandler\JsonItemAttribute;
+use \Andrey\JsonHandler\Attributes\JsonItemAttribute;
 
+// { "customer_name": "the customer name" }
 class MyObject {
     #[JsonItemAttribute(key: 'customer_name')]
-    public name $name;
+    public string $name;
 }
 ```
 
@@ -65,6 +83,7 @@ This will work as a hint so the hydrator can instantiate the appropriate object.
 use \Andrey\JsonHandler\JsonItemAttribute;
 use \MyNamespace\MyOtherObj;
 
+// { "list": [ { "key": "value" } ] }
 class MyObject {
     /** @var MyOtherObj[] */
     #[JsonItemAttribute(type: MyOtherObj::class)]
