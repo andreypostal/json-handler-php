@@ -3,6 +3,7 @@
     "description": "Just a light and simple JSON helper that will make it easy for you to deal with json and objects",
     "type": "library",
     "license": "MIT",
+    "keywords": ["json","value-objects","serializer"],
     "authors": [
         {
             "name": "Andrey Postal",
