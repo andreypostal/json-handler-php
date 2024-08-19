@@ -41,7 +41,6 @@ class MyObject {
 ```
 
 You can also combine both when need to add custom key or if you want to make an item required.
-In the case of the entire object being a JsonObject with a direct 1:1 match (or perfect mirror of the keys), you can use the ``JsonObjectAttribute``
 ```php
 use \Andrey\JsonHandler\Attributes\JsonObjectAttribute;
 use \Andrey\JsonHandler\Attributes\JsonItemAttribute;
