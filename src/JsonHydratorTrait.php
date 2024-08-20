@@ -7,12 +7,14 @@ use InvalidArgumentException;
 use JsonException;
 use LogicException;
 use ReflectionClass;
+use ReflectionException;
 use ReflectionProperty;
 
 trait JsonHydratorTrait
 {
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     public function hydrateObjectImmutable(string|array $json, object $obj): object
     {
@@ -21,6 +23,7 @@ trait JsonHydratorTrait
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     public function hydrateObject(string|array $json, object $obj): object
     {
@@ -39,6 +42,7 @@ trait JsonHydratorTrait
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     private function processClass(ReflectionClass $class, array $jsonArr): array
     {
@@ -53,6 +57,7 @@ trait JsonHydratorTrait
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     private function processProperty(ReflectionProperty $property, array $jsonArr, bool $skipAttributeCheck): mixed
     {
@@ -70,26 +75,48 @@ trait JsonHydratorTrait
         }
 
         if ($property->getType()?->isBuiltin()) {
-            if ($item->type !== null && $property->getType()?->getName() === 'array') {
-                $output = [];
-                $classExists = class_exists($item->type);
-                foreach ($jsonArr[$key] ?? [] as $k => $v) {
-                    $value = $v;
-                    if ($classExists) {
-                        $value = $this->hydrateObject($v, new $item->type);
-                    } elseif (gettype($v) !== $item->type) {
-                        throw new LogicException(sprintf('expected array with items of type <%s> but found <%s>', $item->type, gettype($v)));
-                    }
-                    $output[$k] = $value;
-                }
-                return $output;
-            }
-            return $jsonArr[$key] ?? $property->getDefaultValue();
+            return $this->handleBuiltin($jsonArr, $key, $property, $item);
         }
 
+        return $this->handleCustomType($jsonArr[$key], $property->getType()?->getName());
+    }
+
+    /**
+     * @throws JsonException
+     * @throws ReflectionException
+     */
+    private function handleBuiltin(array $jsonArr, string $key, ReflectionProperty $property, JsonItemAttribute $item): mixed
+    {
+        if ($item->type !== null && $property->getType()?->getName() === 'array') {
+            $output = [];
+            $classExists = class_exists($item->type);
+            foreach ($jsonArr[$key] ?? [] as $k => $v) {
+                $value = $v;
+                if ($classExists) {
+                    $value = $this->handleCustomType($value, $item->type);
+                } elseif (gettype($v) !== $item->type) {
+                    throw new LogicException(sprintf('expected array with items of type <%s> but found <%s>', $item->type, gettype($v)));
+                }
+                $output[$k] = $value;
+            }
+            return $output;
+        }
+        return $jsonArr[$key] ?? ($property->hasDefaultValue() ? $property->getDefaultValue() : null);
+    }
+
+    /**
+     * @throws ReflectionException
+     * @throws JsonException
+     */
+    private function handleCustomType(mixed $value, string $type): mixed
+    {
+        $typeReflection = new ReflectionClass($type);
+        if ($typeReflection->isEnum()) {
+            return call_user_func($type.'::tryFrom', $value);
+        }
         return $this->hydrateObject(
-            $jsonArr[$key],
-            new ($property->getType()?->getName())(),
+            $value,
+            new ($type)(),
         );
     }
 }

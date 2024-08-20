@@ -17,6 +17,7 @@ final class HydratorTest extends TestCase
 {
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     public function testSimpleHydrate(): void
     {
@@ -34,6 +35,7 @@ final class HydratorTest extends TestCase
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     public function testImmutableHydrate(): void
     {
@@ -58,6 +60,7 @@ final class HydratorTest extends TestCase
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     public function testHydrateWithoutOptionalItems(): void
     {
@@ -76,6 +79,7 @@ final class HydratorTest extends TestCase
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     public function testHydrateWithoutRequiredItem(): void
     {
@@ -90,6 +94,7 @@ final class HydratorTest extends TestCase
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     public function testHydrateWithMultipleLevels(): void
     {
@@ -106,6 +111,7 @@ final class HydratorTest extends TestCase
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     public function testHydrateWithArray(): void
     {
@@ -123,6 +129,7 @@ final class HydratorTest extends TestCase
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     public function testHydrateWithInvalidArray(): void
     {
@@ -138,6 +145,7 @@ final class HydratorTest extends TestCase
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     public function testHydrateWithArrayOfObjects(): void
     {
@@ -155,6 +163,7 @@ final class HydratorTest extends TestCase
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     public function testHydrateWithObjectAttr(): void
     {
@@ -172,6 +181,7 @@ final class HydratorTest extends TestCase
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     public function testMixedObjectAndItemAttributes(): void
     {
@@ -185,5 +195,43 @@ final class HydratorTest extends TestCase
         $this->assertEquals(1, $obj->int);
         $this->assertEquals(1.5, $obj->float);
         $this->assertFalse($obj->bool);
+    }
+
+    /**
+     * @throws JsonException
+     * @throws ReflectionException
+     */
+    public function testSimpleEnum(): void
+    {
+        $json = '{"id": "str", "enum": "aaa"}';
+        $obj = new WithEnumObject();
+
+        $handler = new JsonHandler();
+        $handler->hydrateObject($json, $obj);
+
+        $this->assertIsObject($obj->enum);
+        $this->assertEquals('aaa', $obj->enum->value);
+        $this->assertEquals('Aaa', $obj->enum->name);
+    }
+
+    /**
+     * @throws JsonException
+     * @throws ReflectionException
+     */
+    public function testArrayOfEnum(): void
+    {
+        $json = '{"id": "str", "enum": [ "aaa", "bbb", "abc" ]}';
+        $obj = new WithArrayOfEnumObject();
+
+        $handler = new JsonHandler();
+        $handler->hydrateObject($json, $obj);
+
+        $this->assertCount(3, $obj->enum);
+        $this->assertEquals('aaa', $obj->enum[0]->value);
+        $this->assertEquals('Aaa', $obj->enum[0]->name);
+        $this->assertEquals('bbb', $obj->enum[1]->value);
+        $this->assertEquals('Bbb', $obj->enum[1]->name);
+        $this->assertEquals('abc', $obj->enum[2]->value);
+        $this->assertEquals('Abc', $obj->enum[2]->name);
     }
 }
