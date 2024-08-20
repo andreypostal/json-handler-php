@@ -3,13 +3,23 @@ namespace Andrey\JsonHandler;
 
 use Andrey\JsonHandler\Attributes\JsonItemAttribute;
 use Andrey\JsonHandler\Attributes\JsonObjectAttribute;
+use JsonException;
 use ReflectionClass;
+use ReflectionException;
 
 trait JsonSerializerTrait
 {
+    /**
+     * @throws ReflectionException
+     * @throws JsonException
+     */
     public function serialize(object $obj): array
     {
         $class = new ReflectionClass($obj);
+        if ($class->isEnum()) {
+            return $obj->value;
+        }
+
         $skipAttributeCheck = ($class->getAttributes(JsonObjectAttribute::class)[0] ?? null) !== null;
         $output = [];
         $properties = $class->getProperties();
@@ -24,11 +34,53 @@ trait JsonSerializerTrait
             $key = $item->key ?? $property->name;
 
             if ($property->getType()?->isBuiltin()) {
-                $output[$key] = $property->getValue($obj);
+                $output[$key] = $this->handleArray($item, $property->getValue($obj));
+                continue;
+            }
+
+            $class = new ReflectionClass($property->getValue($obj));
+            if ($class->isEnum()) {
+                $output[$key] = $property->getValue($obj)->value;
                 continue;
             }
             $output[$key] = $this->serialize($property->getValue($obj));
         }
         return $output;
+    }
+
+    /**
+     * @param JsonItemAttribute $item
+     * @param mixed $value
+     * @return mixed
+     * @throws ReflectionException
+     * @throws JsonException
+     *
+     * @noinspection GetTypeMissUseInspection
+     */
+    private function handleArray(JsonItemAttribute $item, mixed $value): mixed
+    {
+        if (gettype($value) !== 'array') {
+            return $value;
+        }
+
+        if (!class_exists($item->type)) {
+            return $value;
+        }
+        $class = new ReflectionClass($item->type);
+        $isEnum = $class->isEnum();
+
+        return array_reduce(
+            array: $value,
+            callback: function(array $l, mixed $c) use ($isEnum): array {
+                if ($isEnum) {
+                    $v = $c->value;
+                } else {
+                    $v = $this->serialize($c);
+                }
+                $l[] = $v;
+                return $l;
+            },
+            initial: [],
+        );
     }
 }
