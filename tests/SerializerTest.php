@@ -140,6 +140,34 @@ final class SerializerTest extends TestCase
      * @throws JsonException
      * @throws ReflectionException
      */
+    public function testArrayOfChild(): void
+    {
+        $obj = new WithArrayOfChildObject();
+
+        $handler = new JsonHandler();
+        $arr = $handler->serialize($obj);
+
+        $this->assertArrayHasKey('id', $arr);
+        $this->assertArrayHasKey('children', $arr);
+        $this->assertIsArray($arr['children']);
+        $this->assertCount(2, $arr['children']);
+        $this->assertIsArray($arr['children'][0]);
+
+        $this->assertArrayHasKey('string', $arr['children'][1]);
+        $this->assertArrayHasKey('int', $arr['children'][1]);
+        $this->assertIsInt($arr['children'][1]['int']);
+        $this->assertEquals(11, $arr['children'][1]['int']);
+
+        $this->assertIsFloat($arr['children'][1]['float']);
+        $this->assertEquals(11.50, $arr['children'][1]['float']);
+
+        JsonHandler::Encode($arr);
+    }
+
+    /**
+     * @throws JsonException
+     * @throws ReflectionException
+     */
     public function testSerializeWithObjectAttr(): void
     {
         $this->assertSimpleSerializedObject(new SimpleTestWithObjectAttr());

@@ -16,9 +16,6 @@ trait JsonSerializerTrait
     public function serialize(object $obj): array
     {
         $class = new ReflectionClass($obj);
-        if ($class->isEnum()) {
-            return $obj->value;
-        }
 
         $skipAttributeCheck = ($class->getAttributes(JsonObjectAttribute::class)[0] ?? null) !== null;
         $output = [];
