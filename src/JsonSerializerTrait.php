@@ -3,10 +3,16 @@ namespace Andrey\JsonHandler;
 
 use Andrey\JsonHandler\Attributes\JsonItemAttribute;
 use Andrey\JsonHandler\Attributes\JsonObjectAttribute;
+use JsonException;
 use ReflectionClass;
+use ReflectionException;
 
 trait JsonSerializerTrait
 {
+    /**
+     * @throws ReflectionException
+     * @throws JsonException
+     */
     public function serialize(object $obj): array
     {
         $class = new ReflectionClass($obj);

@@ -25,6 +25,7 @@ final class SerializerTest extends TestCase
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     public function testSerializeWithKeyModified(): void
     {
@@ -53,6 +54,7 @@ final class SerializerTest extends TestCase
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     public function testSerializeMultiLevel(): void
     {
@@ -75,6 +77,7 @@ final class SerializerTest extends TestCase
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     public function testSerializeWithExtraItems(): void
     {
@@ -95,6 +98,47 @@ final class SerializerTest extends TestCase
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
+     */
+    public function testSimpleEnum(): void
+    {
+        $obj = new WithEnumObject();
+
+        $handler = new JsonHandler();
+        $arr = $handler->serialize($obj);
+
+        $this->assertArrayHasKey('id', $arr);
+        $this->assertArrayHasKey('enum', $arr);
+        $this->assertIsString($arr['enum']);
+        $this->assertEquals('abc', $arr['enum']);
+
+        JsonHandler::Encode($arr);
+    }
+
+    /**
+     * @throws JsonException
+     * @throws ReflectionException
+     */
+    public function testArrayEnum(): void
+    {
+        $obj = new WithArrayOfEnumObject();
+
+        $handler = new JsonHandler();
+        $arr = $handler->serialize($obj);
+
+        $this->assertArrayHasKey('id', $arr);
+        $this->assertArrayHasKey('enum', $arr);
+        $this->assertIsArray($arr['enum']);
+        $this->assertCount(2, $arr['enum']);
+        $this->assertEquals('abc', $arr['enum'][0]);
+        $this->assertEquals('aaa', $arr['enum'][1]);
+
+        JsonHandler::Encode($arr);
+    }
+
+    /**
+     * @throws JsonException
+     * @throws ReflectionException
      */
     public function testArrayOfChild(): void
     {
@@ -131,6 +175,7 @@ final class SerializerTest extends TestCase
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     public function testSerializeWithMixedAttrs(): void
     {
@@ -139,6 +184,7 @@ final class SerializerTest extends TestCase
 
     /**
      * @throws JsonException
+     * @throws ReflectionException
      */
     private function assertSimpleSerializedObject(object $obj): void
     {
