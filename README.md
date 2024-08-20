@@ -92,7 +92,7 @@ class MyObject {
 ```
 
 Also, if you have a property that is an array of other object, you must inform the class in the attribute using the ``type`` option.
-This will work as a hint so the hydrator can instantiate the appropriate object.
+This will work as a hint so the hydrator can instantiate the appropriate object. This works with enums as well.
 ```php
 use \Andrey\JsonHandler\JsonItemAttribute;
 use \MyNamespace\MyOtherObj;
