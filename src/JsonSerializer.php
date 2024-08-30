@@ -3,12 +3,22 @@ namespace Andrey\JsonHandler;
 
 use Andrey\JsonHandler\Attributes\JsonItemAttribute;
 use Andrey\JsonHandler\Attributes\JsonObjectAttribute;
+use Andrey\JsonHandler\KeyMapping\KeyMappingStrategy;
+use Andrey\JsonHandler\KeyMapping\KeyMappingUnderscore;
 use JsonException;
 use ReflectionClass;
 use ReflectionException;
 
-trait JsonSerializerTrait
+readonly class JsonSerializer implements SerializerInterface
 {
+    private KeyMappingStrategy $keyStrategy;
+
+    public function __construct(
+        ?KeyMappingStrategy $keyStrategy = null,
+    ) {
+        $this->keyStrategy = $keyStrategy ?: new KeyMappingUnderscore();
+    }
+
     /**
      * @throws ReflectionException
      * @throws JsonException
@@ -28,7 +38,7 @@ trait JsonSerializerTrait
             }
             /** @var JsonItemAttribute $item */
             $item = $attr?->newInstance() ?? new JsonItemAttribute();
-            $key = $item->key ?? $property->name;
+            $key = $item->key ?? $this->keyStrategy->from($property->name);
 
             if ($property->getType()?->isBuiltin()) {
                 $output[$key] = $this->handleArray($item, $property->getValue($obj));

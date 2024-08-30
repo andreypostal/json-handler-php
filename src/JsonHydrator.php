@@ -3,6 +3,8 @@ namespace Andrey\JsonHandler;
 
 use Andrey\JsonHandler\Attributes\JsonItemAttribute;
 use Andrey\JsonHandler\Attributes\JsonObjectAttribute;
+use Andrey\JsonHandler\KeyMapping\KeyMappingStrategy;
+use Andrey\JsonHandler\KeyMapping\KeyMappingUnderscore;
 use InvalidArgumentException;
 use JsonException;
 use LogicException;
@@ -10,49 +12,40 @@ use ReflectionClass;
 use ReflectionException;
 use ReflectionProperty;
 
-trait JsonHydratorTrait
+readonly class JsonHydrator implements HydratorInterface
 {
-    /**
-     * @throws JsonException
-     * @throws ReflectionException
-     */
-    public function hydrateObjectImmutable(string|array $json, object $obj): object
-    {
-        return $this->hydrateObject($json, clone $obj);
+    private KeyMappingStrategy $keyStrategy;
+
+    public function __construct(
+        ?KeyMappingStrategy $keyStrategy = null,
+    ) {
+        $this->keyStrategy = $keyStrategy ?: new KeyMappingUnderscore();
     }
 
     /**
      * @throws JsonException
      * @throws ReflectionException
      */
-    public function hydrateObject(string|array $json, object $obj): object
+    public function hydrate(string|array $json, object|string $objOrClass): object
     {
-        $jsonArr = is_string($json) ? JsonHandler::Decode($json) : $json;
-        $reflectionClass = new ReflectionClass($obj);
-        $data = $this->processClass($reflectionClass, $jsonArr);
-        if ($reflectionClass->hasMethod('hydrate')) {
-            $obj->hydrate($data);
-        } else {
-            foreach ($data as $key => $value) {
-                $obj->{$key} = $value;
-            }
-        }
-        return $obj;
+        $jsonArr = is_string($json) ? $this->decode($json) : $json;
+        $reflectionClass = new ReflectionClass($objOrClass);
+        return $this->processClass($reflectionClass, $jsonArr);
     }
 
     /**
      * @throws JsonException
      * @throws ReflectionException
      */
-    private function processClass(ReflectionClass $class, array $jsonArr): array
+    private function processClass(ReflectionClass $class, array $jsonArr): object
     {
+        $instance = $class->newInstance();
         $skipAttributeCheck = ($class->getAttributes(JsonObjectAttribute::class)[0] ?? null) !== null;
-        $output = [];
         $properties = $class->getProperties();
         foreach ($properties as $property) {
-            $output[$property->getName()] = $this->processProperty($property, $jsonArr, $skipAttributeCheck);
+            $property->setValue($instance, $this->processProperty($property, $jsonArr, $skipAttributeCheck));
         }
-        return $output;
+        return $instance;
     }
 
     /**
@@ -69,7 +62,7 @@ trait JsonHydratorTrait
 
         /** @var JsonItemAttribute $item */
         $item = $attr?->newInstance() ?? new JsonItemAttribute();
-        $key = $item->key ?? $property->getName();
+        $key = $item->key ?? $this->keyStrategy->from($property->getName());
         if ($item->required && !array_key_exists($key, $jsonArr)) {
             throw new InvalidArgumentException(sprintf('required item <%s> not found', $key));
         }
@@ -114,9 +107,17 @@ trait JsonHydratorTrait
         if ($typeReflection->isEnum()) {
             return call_user_func($type.'::tryFrom', $value);
         }
-        return $this->hydrateObject(
+        return $this->hydrate(
             $value,
             new ($type)(),
         );
+    }
+
+    /**
+     * @throws JsonException
+     */
+    private function decode(string $json): mixed
+    {
+        return json_decode($json, true, 512, JSON_THROW_ON_ERROR);
     }
 }
